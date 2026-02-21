@@ -1,23 +1,13 @@
 @import "tailwindcss";
 
 @layer base {
-  html {
-    background-color: #09090b !important;
-    color-scheme: dark;
-  }
-
-  body {
-    background-color: #09090b !important;
-    color: #fafafa !important;
+  html, body {
+    background-color: #ffffff;
+    color: #0a0a0a;
     font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
     margin: 0;
     padding: 0;
     -webkit-font-smoothing: antialiased;
-  }
-
-  /* Override any Tailwind white defaults */
-  *, *::before, *::after {
-    border-color: #27272a;
   }
 }
 
@@ -26,17 +16,17 @@ input[type="checkbox"] {
   appearance: none;
   width: 16px;
   height: 16px;
-  border: 1px solid #3f3f46;
+  border: 1px solid #d4d4d8;
   border-radius: 4px;
-  background: #18181b;
+  background: #fff;
   cursor: pointer;
   position: relative;
   flex-shrink: 0;
 }
 
 input[type="checkbox"]:checked {
-  background: #3b82f6;
-  border-color: #3b82f6;
+  background: #2563eb;
+  border-color: #2563eb;
 }
 
 input[type="checkbox"]:checked::after {
@@ -51,7 +41,6 @@ input[type="checkbox"]:checked::after {
   transform: rotate(45deg);
 }
 
-/* Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -61,10 +50,10 @@ input[type="checkbox"]:checked::after {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #27272a;
+  background: #d4d4d8;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #3f3f46;
+  background: #a1a1aa;
 }

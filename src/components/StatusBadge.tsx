@@ -11,7 +11,7 @@ export function StatusBadge({ status }: { status: DealStatus }) {
   const config = statusConfig[status] || statusConfig.new;
 
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-zinc-300">
+    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-zinc-700">
       <span className={`w-1.5 h-1.5 rounded-full ${config.dot}`} />
       {config.label}
     </span>

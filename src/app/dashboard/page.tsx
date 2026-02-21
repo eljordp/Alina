@@ -106,19 +106,19 @@ export default function DashboardPage() {
   });
 
   return (
-    <div className="min-h-screen bg-zinc-950">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="border-b border-zinc-800/60 px-6 py-4">
+      <header className="border-b border-zinc-200 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
               onClick={() => router.push('/')}
-              className="text-zinc-500 hover:text-zinc-300 transition-colors"
+              className="text-zinc-400 hover:text-zinc-700 transition-colors"
             >
               <Home className="w-4 h-4" />
             </button>
-            <h1 className="text-lg font-semibold text-white tracking-tight">Alina</h1>
-            <span className="text-[11px] text-zinc-500 bg-zinc-900 rounded-md px-2 py-0.5 font-mono">
+            <h1 className="text-lg font-semibold text-zinc-900 tracking-tight">Alina</h1>
+            <span className="text-[11px] text-zinc-500 bg-zinc-100 rounded-md px-2 py-0.5 font-mono">
               {filteredDeals.length} {filteredDeals.length === 1 ? 'deal' : 'deals'}
             </span>
           </div>
@@ -127,7 +127,7 @@ export default function DashboardPage() {
               <button
                 onClick={deleteSelected}
                 disabled={deleting}
-                className="inline-flex items-center gap-1.5 text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/15 text-xs px-3 py-1.5 rounded-md transition-colors disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 text-xs px-3 py-1.5 rounded-md transition-colors disabled:opacity-50"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 {deleting ? 'Deleting...' : `Delete ${selected.size}`}
@@ -136,7 +136,7 @@ export default function DashboardPage() {
             <button
               onClick={pollEmails}
               disabled={polling}
-              className="inline-flex items-center gap-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs px-3 py-1.5 rounded-md transition-colors disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs px-3 py-1.5 rounded-md transition-colors disabled:opacity-50"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${polling ? 'animate-spin' : ''}`} />
               {polling ? 'Checking...' : 'Check Emails'}
@@ -148,15 +148,15 @@ export default function DashboardPage() {
       <div className="max-w-7xl mx-auto px-6 py-5">
         {/* Toolbar: filters + search */}
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-1 bg-zinc-900 rounded-lg p-0.5">
+          <div className="flex items-center gap-1 bg-zinc-100 rounded-lg p-0.5">
             {STATUS_FILTERS.map((f) => (
               <button
                 key={f.value}
                 onClick={() => setFilter(f.value)}
                 className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
                   filter === f.value
-                    ? 'bg-zinc-800 text-white shadow-sm'
-                    : 'text-zinc-500 hover:text-zinc-300'
+                    ? 'bg-white text-zinc-900 shadow-sm'
+                    : 'text-zinc-500 hover:text-zinc-700'
                 }`}
               >
                 {f.icon}
@@ -165,18 +165,18 @@ export default function DashboardPage() {
             ))}
           </div>
           <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-600" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400" />
             <input
               type="text"
               placeholder="Search..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="bg-zinc-900 border border-zinc-800 rounded-md pl-8 pr-7 py-1.5 text-xs text-zinc-300 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700 w-52"
+              className="bg-white border border-zinc-200 rounded-md pl-8 pr-7 py-1.5 text-xs text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-400 w-52"
             />
             {search && (
               <button
                 onClick={() => setSearch('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-600 hover:text-zinc-400"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -186,24 +186,24 @@ export default function DashboardPage() {
 
         {/* Table */}
         {loading ? (
-          <div className="text-center py-20 text-zinc-600 text-sm">Loading...</div>
+          <div className="text-center py-20 text-zinc-400 text-sm">Loading...</div>
         ) : filteredDeals.length === 0 ? (
           <div className="text-center py-24">
-            <Inbox className="w-10 h-10 text-zinc-800 mx-auto mb-3" />
+            <Inbox className="w-10 h-10 text-zinc-300 mx-auto mb-3" />
             <p className="text-zinc-500 text-sm">
               {search ? 'No deals match your search.' : 'No deals yet.'}
             </p>
             {!search && (
-              <button onClick={pollEmails} className="mt-3 text-blue-400 hover:text-blue-300 text-xs">
+              <button onClick={pollEmails} className="mt-3 text-blue-600 hover:text-blue-700 text-xs">
                 Check inbox now
               </button>
             )}
           </div>
         ) : (
-          <div className="border border-zinc-800/60 rounded-lg overflow-hidden">
+          <div className="border border-zinc-200 rounded-lg overflow-hidden">
             <table className="w-full">
               <thead>
-                <tr className="bg-zinc-900/50 text-left text-[11px] text-zinc-500 uppercase tracking-wider">
+                <tr className="bg-zinc-50 text-left text-[11px] text-zinc-500 uppercase tracking-wider">
                   <th className="pl-4 pr-2 py-2.5 w-10">
                     <input
                       type="checkbox"
@@ -218,15 +218,15 @@ export default function DashboardPage() {
                   <th className="px-3 py-2.5">Received</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800/40">
+              <tbody className="divide-y divide-zinc-100">
                 {filteredDeals.map((deal) => {
                   const rate = completionRate(deal);
                   return (
                     <tr
                       key={deal.id}
                       onClick={() => router.push(`/dashboard/${deal.id}`)}
-                      className={`hover:bg-zinc-900/60 cursor-pointer transition-colors ${
-                        selected.has(deal.id) ? 'bg-zinc-900/40' : ''
+                      className={`hover:bg-zinc-50 cursor-pointer transition-colors ${
+                        selected.has(deal.id) ? 'bg-blue-50/50' : ''
                       }`}
                     >
                       <td className="pl-4 pr-2 py-3" onClick={(e) => e.stopPropagation()}>
@@ -238,8 +238,8 @@ export default function DashboardPage() {
                         />
                       </td>
                       <td className="px-3 py-3">
-                        <p className="text-sm font-medium text-zinc-200">{deal.client_name}</p>
-                        <p className="text-[11px] text-zinc-600">{deal.client_email}</p>
+                        <p className="text-sm font-medium text-zinc-900">{deal.client_name}</p>
+                        <p className="text-[11px] text-zinc-400">{deal.client_email}</p>
                       </td>
                       <td className="px-3 py-3 text-xs text-zinc-500 max-w-[200px] truncate">
                         {(deal as any).subject_line || '—'}
@@ -249,10 +249,10 @@ export default function DashboardPage() {
                       </td>
                       <td className="px-3 py-3">
                         <div className="flex items-center gap-2">
-                          <div className="w-16 h-1 bg-zinc-800 rounded-full overflow-hidden">
+                          <div className="w-16 h-1 bg-zinc-200 rounded-full overflow-hidden">
                             <div
                               className={`h-full rounded-full transition-all ${
-                                rate >= 80 ? 'bg-emerald-500' : rate >= 40 ? 'bg-blue-500' : 'bg-zinc-600'
+                                rate >= 80 ? 'bg-emerald-500' : rate >= 40 ? 'bg-blue-500' : 'bg-zinc-400'
                               }`}
                               style={{ width: `${rate}%` }}
                             />
@@ -260,7 +260,7 @@ export default function DashboardPage() {
                           <span className="text-[11px] text-zinc-500 font-mono w-7">{rate}%</span>
                         </div>
                       </td>
-                      <td className="px-3 py-3 text-[11px] text-zinc-600">
+                      <td className="px-3 py-3 text-[11px] text-zinc-400">
                         {new Date(deal.created_at).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
