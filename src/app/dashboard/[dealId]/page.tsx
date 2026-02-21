@@ -141,6 +141,11 @@ export default function DealDetailPage() {
         body: JSON.stringify({ status, application_data: formData }),
       });
       if (status === 'completed') {
+        // Auto-generate the 1003 PDF on completion
+        if (deal) {
+          const pdf = generateLoanPDF(formData, deal.client_name, deal.client_email, deal.created_at);
+          pdf.save(`1003_${deal.client_name.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`);
+        }
         router.push('/dashboard');
       } else {
         await fetchDeal();
