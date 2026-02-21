@@ -23,60 +23,24 @@ export default function Home() {
 
       {/* ── Hero ── */}
       <div className="max-w-[1200px] mx-auto px-6 pt-32 sm:pt-44 pb-20 sm:pb-32">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr,380px] gap-16 lg:gap-20 items-start">
-          <div>
-            <h1 className="text-[clamp(2rem,6vw,3.8rem)] font-semibold leading-[1.1] tracking-[-0.035em] text-white/95">
-              Your 1003, filled
-              <br className="hidden sm:block" />
-              {' '}before you sit down.
-            </h1>
-            <p className="mt-6 text-[15px] sm:text-[17px] text-white/35 leading-[1.7] max-w-[480px]">
-              Alina watches your inbox, reads every W-2, pay stub, and bank
-              statement, then pre-fills the entire URLA. You just review.
-            </p>
-            <div className="mt-10 flex items-center gap-6">
-              <button
-                onClick={() => router.push('/dashboard')}
-                className="group inline-flex items-center gap-2.5 bg-white text-[#0C0C0C] text-[13px] font-semibold px-5 py-2.5 rounded-md hover:bg-white/90 transition-colors"
-              >
-                Open Dashboard
-                <ArrowRight className="w-3.5 h-3.5 opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
-              </button>
-            </div>
-          </div>
-
-          {/* Product card */}
-          <div className="hidden lg:block pt-4">
-            <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] overflow-hidden">
-              <div className="px-5 py-3.5 border-b border-white/[0.04] flex items-center justify-between">
-                <span className="text-[11px] text-white/25 uppercase tracking-[0.15em]">Recent Deal</span>
-                <span className="text-[10px] text-emerald-400/80 bg-emerald-400/[0.08] px-2 py-0.5 rounded-full">Review</span>
-              </div>
-              <div className="p-5 space-y-3.5">
-                {[
-                  ['Borrower', 'James Mitchell'],
-                  ['Loan Amount', '$425,000'],
-                  ['Property', '1847 Oak Valley Dr'],
-                  ['Mid FICO', '742'],
-                  ['CLTV', '68%'],
-                  ['Rate', '6.875%'],
-                ].map(([label, val]) => (
-                  <div key={label} className="flex justify-between items-baseline">
-                    <span className="text-[12px] text-white/20">{label}</span>
-                    <span className="text-[13px] text-white/70 font-medium tabular-nums">{val}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="px-5 pb-5">
-                <div className="flex justify-between mb-1.5">
-                  <span className="text-[11px] text-white/20">22 of 26 fields</span>
-                  <span className="text-[11px] text-white/30 font-mono">85%</span>
-                </div>
-                <div className="h-[3px] bg-white/[0.04] rounded-full overflow-hidden">
-                  <div className="h-full w-[85%] bg-gradient-to-r from-amber-500/70 to-amber-400/50 rounded-full" />
-                </div>
-              </div>
-            </div>
+        <div className="max-w-2xl">
+          <h1 className="text-[clamp(2rem,6vw,3.8rem)] font-semibold leading-[1.1] tracking-[-0.035em] text-white/95">
+            Your 1003, filled
+            <br className="hidden sm:block" />
+            {' '}before you sit down.
+          </h1>
+          <p className="mt-6 text-[15px] sm:text-[17px] text-white/35 leading-[1.7] max-w-[480px]">
+            Alina watches your inbox, reads every W-2, pay stub, and bank
+            statement, then pre-fills the entire URLA. You just review.
+          </p>
+          <div className="mt-10 flex items-center gap-6">
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="group inline-flex items-center gap-2.5 bg-white text-[#0C0C0C] text-[13px] font-semibold px-5 py-2.5 rounded-md hover:bg-white/90 transition-colors"
+            >
+              Open Dashboard
+              <ArrowRight className="w-3.5 h-3.5 opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+            </button>
           </div>
         </div>
       </div>
