@@ -13,13 +13,14 @@ export function getGmailClient(refreshToken: string) {
   return google.gmail({ version: 'v1', auth: oauth2Client });
 }
 
-export async function fetchNewEmails(refreshToken: string) {
+export async function fetchNewEmails(refreshToken: string, includeRead = false) {
   const gmail = getGmailClient(refreshToken);
 
-  // Get unread messages that look like loan requests (have attachments or contain loan keywords)
+  // Get messages that look like loan requests
+  const readFilter = includeRead ? '' : 'is:unread ';
   const response = await gmail.users.messages.list({
     userId: 'me',
-    q: 'is:unread (subject:(1003 OR "loan amount" OR "trust deed" OR FICO OR "property value" OR "protective equity") OR ("loan amount" "property value" "interest rate"))',
+    q: `${readFilter}(subject:(1003 OR "loan amount" OR "trust deed" OR FICO OR "property value" OR "protective equity") OR ("loan amount" "property value" "interest rate"))`,
     maxResults: 20,
   });
 

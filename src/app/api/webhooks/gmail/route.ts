@@ -35,16 +35,18 @@ export async function POST(request: NextRequest) {
 }
 
 // Also support GET for manual polling / testing
-export async function GET() {
+// Use ?rescan=true to re-process previously read emails
+export async function GET(request: NextRequest) {
   try {
     const refreshToken = process.env.GOOGLE_REFRESH_TOKEN!;
-    const emails = await fetchNewEmails(refreshToken);
+    const rescan = request.nextUrl.searchParams.get('rescan') === 'true';
+    const emails = await fetchNewEmails(refreshToken, rescan);
 
     for (const email of emails) {
       await processEmail(email, refreshToken);
     }
 
-    return NextResponse.json({ success: true, processed: emails.length });
+    return NextResponse.json({ success: true, processed: emails.length, rescan });
   } catch (error) {
     console.error('Manual poll error:', error);
     return NextResponse.json({ error: 'Processing failed' }, { status: 500 });
