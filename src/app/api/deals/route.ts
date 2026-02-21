@@ -22,3 +22,29 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json(data);
 }
+
+// DELETE multiple deals
+export async function DELETE(request: NextRequest) {
+  const { ids } = await request.json();
+
+  if (!ids || !Array.isArray(ids) || ids.length === 0) {
+    return NextResponse.json({ error: 'No deal IDs provided' }, { status: 400 });
+  }
+
+  // Delete documents first (cascade should handle this, but being explicit)
+  await supabaseAdmin
+    .from('documents')
+    .delete()
+    .in('deal_id', ids);
+
+  const { error } = await supabaseAdmin
+    .from('deals')
+    .delete()
+    .in('id', ids);
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true, deleted: ids.length });
+}
