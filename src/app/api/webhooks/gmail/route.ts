@@ -94,6 +94,7 @@ async function processEmail(
       .from('deals')
       .update({ status: 'processing', updated_at: new Date().toISOString() })
       .eq('id', deal.id);
+    await logActivity(deal.id, 'email_received', `New email from ${email.from}: "${email.subject}"`);
   } else {
     // Create new deal
     const { data: newDeal, error } = await supabaseAdmin
@@ -111,6 +112,7 @@ async function processEmail(
 
     if (error) throw new Error(`Failed to create deal: ${error.message}`);
     deal = newDeal;
+    await logActivity(deal.id, 'deal_created', `Deal created from email by ${email.from}`);
   }
 
   let applicationData = deal.application_data || { ...EMPTY_APPLICATION };
@@ -176,6 +178,7 @@ async function processEmail(
 
         // Merge into application
         applicationData = mergeApplicationData(applicationData, extractedData);
+        await logActivity(deal.id, 'document_parsed', `Parsed ${attachment.fileName} (${docType})`);
       } else {
         // Mark unsupported formats
         await supabaseAdmin
@@ -201,7 +204,19 @@ async function processEmail(
     })
     .eq('id', deal.id);
 
-  console.log(`Deal ${deal.id} updated. Status: ${hasRequiredFields ? 'ready_for_review' : 'processing'}`);
+  const newStatus = hasRequiredFields ? 'ready_for_review' : 'processing';
+  console.log(`Deal ${deal.id} updated. Status: ${newStatus}`);
+  await logActivity(deal.id, 'status_changed', `Status updated to ${newStatus}`);
+}
+
+async function logActivity(dealId: string, action: string, details: string) {
+  try {
+    await supabaseAdmin
+      .from('activity_log')
+      .insert({ deal_id: dealId, action, details });
+  } catch (err) {
+    console.error('Failed to log activity:', err);
+  }
 }
 
 function classifyDocument(fileName: string, mimeType: string): string {

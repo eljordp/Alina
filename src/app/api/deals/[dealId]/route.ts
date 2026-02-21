@@ -52,5 +52,21 @@ export async function PATCH(
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  // Log activity
+  if (body.status) {
+    await supabaseAdmin.from('activity_log').insert({
+      deal_id: dealId,
+      action: 'status_changed',
+      details: `Status changed to ${body.status}`,
+    }).catch(() => {});
+  }
+  if (body.application_data && !body.status) {
+    await supabaseAdmin.from('activity_log').insert({
+      deal_id: dealId,
+      action: 'application_saved',
+      details: 'Application data saved by loan officer',
+    }).catch(() => {});
+  }
+
   return NextResponse.json(data);
 }

@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Deal, Document, LoanApplication } from '@/lib/types';
 import { StatusBadge } from '@/components/StatusBadge';
-import { ArrowLeft, Save, CheckCircle, FileText, AlertTriangle, Paperclip, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Save, CheckCircle, FileText, AlertTriangle, Paperclip, ChevronRight, Download, Mail, Eye, X, Clock } from 'lucide-react';
+import { generateLoanPDF } from '@/lib/generate-pdf';
 
 interface FieldConfig {
   key: keyof LoanApplication;
@@ -80,8 +81,11 @@ export default function DealDetailPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [viewingDoc, setViewingDoc] = useState<Document | null>(null);
+  const [showFollowUp, setShowFollowUp] = useState(false);
+  const [activities, setActivities] = useState<{ id: string; action: string; details: string; created_at: string }[]>([]);
 
-  useEffect(() => { fetchDeal(); }, [dealId]);
+  useEffect(() => { fetchDeal(); fetchActivities(); }, [dealId]);
 
   const fetchDeal = async () => {
     try {
@@ -94,6 +98,16 @@ export default function DealDetailPage() {
       console.error('Failed to fetch deal:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchActivities = async () => {
+    try {
+      const res = await fetch(`/api/activity?dealId=${dealId}`);
+      const data = await res.json();
+      if (Array.isArray(data)) setActivities(data);
+    } catch (err) {
+      // activity log table may not exist yet
     }
   };
 
@@ -134,6 +148,29 @@ export default function DealDetailPage() {
     } catch (err) {
       console.error('Failed to update status:', err);
     }
+  };
+
+  const exportPDF = () => {
+    if (!deal) return;
+    const pdf = generateLoanPDF(formData, deal.client_name, deal.client_email, deal.created_at);
+    pdf.save(`${deal.client_name.replace(/[^a-zA-Z0-9]/g, '_')}_loan_application.pdf`);
+  };
+
+  const generateFollowUpEmail = () => {
+    const missing = formData.missing_fields || [];
+    if (missing.length === 0) return '';
+    const fieldNames = missing.map((f: string) => f.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()));
+    const list = fieldNames.map((f: string) => `  - ${f}`).join('\n');
+    return `Hi ${deal?.client_name || 'there'},
+
+Thank you for submitting your loan application. We've reviewed your documents and are missing a few pieces of information to complete processing:
+
+${list}
+
+Could you please send these over at your earliest convenience? You can reply to this email with the documents attached.
+
+Thank you,
+Loan Processing Team`;
   };
 
   if (loading) {
@@ -177,6 +214,22 @@ export default function DealDetailPage() {
             </span>
           </div>
           <div className="flex items-center gap-2">
+            {(formData.missing_fields || []).length > 0 && (
+              <button
+                onClick={() => setShowFollowUp(!showFollowUp)}
+                className="inline-flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 text-xs px-3 py-1.5 rounded-md transition-colors"
+              >
+                <Mail className="w-3.5 h-3.5" />
+                Follow Up
+              </button>
+            )}
+            <button
+              onClick={exportPDF}
+              className="inline-flex items-center gap-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs px-3 py-1.5 rounded-md transition-colors"
+            >
+              <Download className="w-3.5 h-3.5" />
+              PDF
+            </button>
             <button
               onClick={handleSave}
               disabled={saving}
@@ -336,11 +389,12 @@ export default function DealDetailPage() {
                   {documents.map((doc, di) => (
                     <div
                       key={doc.id}
-                      className="flex items-start gap-2 p-2 rounded-md bg-zinc-50 hover:bg-zinc-100 transition-colors animate-fade-in-up"
+                      className="flex items-center gap-2 p-2 rounded-md bg-zinc-50 hover:bg-zinc-100 transition-colors animate-fade-in-up cursor-pointer"
                       style={{ animationDelay: `${300 + di * 60}ms` }}
+                      onClick={() => setViewingDoc(doc)}
                     >
-                      <FileText className="w-3.5 h-3.5 text-zinc-400 shrink-0 mt-0.5" />
-                      <div className="min-w-0">
+                      <FileText className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                      <div className="min-w-0 flex-1">
                         <p className="text-[11px] font-medium text-zinc-700 truncate">{doc.file_name}</p>
                         <div className="flex items-center gap-1.5 mt-0.5">
                           <span className="text-[10px] text-zinc-400 uppercase">{doc.doc_type.replace('_', ' ')}</span>
@@ -351,6 +405,7 @@ export default function DealDetailPage() {
                           </span>
                         </div>
                       </div>
+                      <Eye className="w-3 h-3 text-zinc-300 shrink-0" />
                     </div>
                   ))}
                 </div>
@@ -366,9 +421,147 @@ export default function DealDetailPage() {
                 </pre>
               </div>
             )}
+
+            {/* Activity timeline */}
+            {activities.length > 0 && (
+              <div className="border border-zinc-200 rounded-lg p-4 animate-fade-in-up delay-400">
+                <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5" />
+                  Activity
+                </h3>
+                <div className="space-y-0">
+                  {activities.map((activity, i) => {
+                    const icons: Record<string, string> = {
+                      deal_created: '+ ',
+                      email_received: '@ ',
+                      document_parsed: '# ',
+                      status_changed: '> ',
+                      application_saved: '~ ',
+                    };
+                    return (
+                      <div key={activity.id} className="flex gap-2 py-1.5 border-b border-zinc-50 last:border-0">
+                        <span className="text-[10px] font-mono text-zinc-300 shrink-0 mt-0.5">{icons[activity.action] || '  '}</span>
+                        <div className="min-w-0">
+                          <p className="text-[11px] text-zinc-700">{activity.details}</p>
+                          <p className="text-[10px] text-zinc-400">
+                            {new Date(activity.created_at).toLocaleDateString('en-US', {
+                              month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </div>
+
+        {/* Follow-up email panel */}
+        {showFollowUp && (
+          <div className="mt-5 border border-amber-200 bg-amber-50/50 rounded-lg p-5 animate-scale-in">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xs font-semibold text-amber-800 uppercase tracking-wider flex items-center gap-1.5">
+                <Mail className="w-3.5 h-3.5" />
+                Follow-Up Email Draft
+              </h3>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    const text = generateFollowUpEmail();
+                    navigator.clipboard.writeText(text);
+                  }}
+                  className="text-[11px] text-amber-700 hover:text-amber-900 bg-amber-100 hover:bg-amber-200 px-2.5 py-1 rounded transition-colors"
+                >
+                  Copy to Clipboard
+                </button>
+                <button
+                  onClick={() => {
+                    const text = generateFollowUpEmail();
+                    const subject = encodeURIComponent(`Follow Up: Loan Application - Missing Documents`);
+                    const body = encodeURIComponent(text);
+                    window.open(`mailto:${deal.client_email}?subject=${subject}&body=${body}`);
+                  }}
+                  className="text-[11px] text-white bg-amber-600 hover:bg-amber-700 px-2.5 py-1 rounded transition-colors"
+                >
+                  Open in Email
+                </button>
+                <button onClick={() => setShowFollowUp(false)} className="text-amber-400 hover:text-amber-600">
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+            <pre className="text-[12px] text-amber-900 whitespace-pre-wrap font-mono leading-relaxed bg-white border border-amber-200 rounded-md p-4">
+              {generateFollowUpEmail()}
+            </pre>
+          </div>
+        )}
       </div>
+
+      {/* Document viewer modal */}
+      {viewingDoc && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-6 animate-fade-in" onClick={() => setViewingDoc(null)}>
+          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[85vh] flex flex-col animate-scale-in" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-zinc-200">
+              <div>
+                <h3 className="text-sm font-semibold text-zinc-900">{viewingDoc.file_name}</h3>
+                <p className="text-[11px] text-zinc-400 mt-0.5">
+                  {viewingDoc.doc_type.replace('_', ' ').toUpperCase()} &middot; {viewingDoc.status}
+                </p>
+              </div>
+              <button onClick={() => setViewingDoc(null)} className="text-zinc-400 hover:text-zinc-600 transition-colors">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-auto grid grid-cols-2 divide-x divide-zinc-200">
+              {/* Document preview */}
+              <div className="p-5 flex items-center justify-center bg-zinc-50">
+                {viewingDoc.file_url ? (
+                  viewingDoc.file_name.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                    <img src={viewingDoc.file_url} alt={viewingDoc.file_name} className="max-w-full max-h-[60vh] object-contain rounded" />
+                  ) : viewingDoc.file_name.match(/\.pdf$/i) ? (
+                    <iframe src={viewingDoc.file_url} className="w-full h-[60vh] rounded" />
+                  ) : (
+                    <div className="text-center text-zinc-400">
+                      <FileText className="w-12 h-12 mx-auto mb-2" />
+                      <p className="text-sm">Preview not available</p>
+                      <a href={viewingDoc.file_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 text-xs mt-1 inline-block hover:underline">
+                        Open file
+                      </a>
+                    </div>
+                  )
+                ) : (
+                  <div className="text-center text-zinc-400">
+                    <FileText className="w-12 h-12 mx-auto mb-2" />
+                    <p className="text-sm">No preview available</p>
+                  </div>
+                )}
+              </div>
+              {/* Extracted data */}
+              <div className="p-5 overflow-auto">
+                <h4 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">Extracted Data</h4>
+                {viewingDoc.extracted_data && Object.keys(viewingDoc.extracted_data).length > 0 ? (
+                  <div className="space-y-2">
+                    {Object.entries(viewingDoc.extracted_data)
+                      .filter(([k]) => k !== 'missing_fields' && k !== 'confidence_notes')
+                      .map(([key, value]) => (
+                        <div key={key} className="flex justify-between items-start py-1.5 border-b border-zinc-50">
+                          <span className="text-[11px] text-zinc-500">{key.replace(/_/g, ' ')}</span>
+                          <span className="text-[11px] text-zinc-900 font-medium text-right max-w-[60%]">
+                            {value !== null && value !== undefined ? String(value) : '—'}
+                          </span>
+                        </div>
+                      ))}
+                  </div>
+                ) : (
+                  <p className="text-[11px] text-zinc-400">No data extracted from this document</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

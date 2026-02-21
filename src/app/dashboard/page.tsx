@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Deal } from '@/lib/types';
 import { StatusBadge } from '@/components/StatusBadge';
-import { RefreshCw, Inbox, Clock, CheckCircle, AlertCircle, Trash2, Search, X, Home, ArrowUpDown, ChevronUp, ChevronDown } from 'lucide-react';
+import { RefreshCw, Inbox, Clock, CheckCircle, AlertCircle, Trash2, Search, X, Home, ArrowUpDown, ChevronUp, ChevronDown, BarChart3 } from 'lucide-react';
 
 const STATUS_FILTERS = [
   { label: 'All', value: 'all', icon: <Inbox className="w-3.5 h-3.5" /> },
@@ -199,6 +199,13 @@ export default function DashboardPage() {
                 {deleting ? 'Deleting...' : `Delete ${selected.size}`}
               </button>
             )}
+            <button
+              onClick={() => router.push('/analytics')}
+              className="inline-flex items-center gap-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs px-3 py-1.5 rounded-md transition-colors"
+            >
+              <BarChart3 className="w-3.5 h-3.5" />
+              Analytics
+            </button>
             <button
               onClick={pollEmails}
               disabled={polling}
