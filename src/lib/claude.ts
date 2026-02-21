@@ -2,7 +2,7 @@ import OpenAI from 'openai';
 import { LoanApplication } from './types';
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
+  apiKey: process.env.OPENAI_API_KEY || 'placeholder',
 });
 
 const EXTRACTION_PROMPT = `You are a loan document processing AI for a private lending company. Your job is to extract structured data from loan-related documents and emails.
