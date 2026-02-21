@@ -19,7 +19,7 @@ export async function fetchNewEmails(refreshToken: string) {
   // Get unread messages that look like loan requests (have attachments or contain loan keywords)
   const response = await gmail.users.messages.list({
     userId: 'me',
-    q: 'is:unread (has:attachment OR subject:(loan OR borrower OR "trust deed" OR FICO OR "loan amount" OR "property value") OR {loan amount property value interest rate borrower})',
+    q: 'is:unread (subject:(1003 OR "loan amount" OR "trust deed" OR FICO OR "property value" OR "protective equity") OR ("loan amount" "property value" "interest rate"))',
     maxResults: 20,
   });
 
