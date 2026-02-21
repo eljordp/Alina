@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Deal } from '@/lib/types';
 import { StatusBadge } from '@/components/StatusBadge';
-import { RefreshCw, Inbox, Clock, CheckCircle, AlertCircle, Trash2, Search, X } from 'lucide-react';
+import { RefreshCw, Inbox, Clock, CheckCircle, AlertCircle, Trash2, Search, X, Home } from 'lucide-react';
 
 const STATUS_FILTERS = [
   { label: 'All', value: 'all', icon: <Inbox className="w-3.5 h-3.5" /> },
@@ -111,6 +111,12 @@ export default function DashboardPage() {
       <header className="border-b border-zinc-800/60 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
+            <button
+              onClick={() => router.push('/')}
+              className="text-zinc-500 hover:text-zinc-300 transition-colors"
+            >
+              <Home className="w-4 h-4" />
+            </button>
             <h1 className="text-lg font-semibold text-white tracking-tight">Alina</h1>
             <span className="text-[11px] text-zinc-500 bg-zinc-900 rounded-md px-2 py-0.5 font-mono">
               {filteredDeals.length} {filteredDeals.length === 1 ? 'deal' : 'deals'}
