@@ -165,7 +165,6 @@ export default function DashboardPage() {
       : <ChevronDown className="w-3 h-3 text-zinc-700" />;
   };
 
-  // Status counts for filter badges
   const statusCounts = deals.reduce((acc, d) => {
     acc[d.status] = (acc[d.status] || 0) + 1;
     return acc;
@@ -174,59 +173,56 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="border-b border-zinc-200 px-6 py-4 animate-slide-down">
+      <header className="border-b border-zinc-200 px-4 sm:px-6 py-3 sm:py-4 animate-slide-down">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => router.push('/')}
-              className="text-zinc-400 hover:text-zinc-700 transition-colors"
-            >
+          <div className="flex items-center gap-3 sm:gap-4">
+            <button onClick={() => router.push('/')} className="text-zinc-400 hover:text-zinc-700 transition-colors">
               <Home className="w-4 h-4" />
             </button>
-            <h1 className="text-lg font-semibold text-zinc-900 tracking-tight">Alina</h1>
-            <span className="text-[11px] text-zinc-500 bg-zinc-100 rounded-md px-2 py-0.5 font-mono">
+            <h1 className="text-base sm:text-lg font-semibold text-zinc-900 tracking-tight">Alina</h1>
+            <span className="text-[11px] text-zinc-500 bg-zinc-100 rounded-md px-2 py-0.5 font-mono hidden sm:inline">
               {sortedDeals.length} {sortedDeals.length === 1 ? 'deal' : 'deals'}
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             {selected.size > 0 && (
               <button
                 onClick={deleteSelected}
                 disabled={deleting}
-                className="inline-flex items-center gap-1.5 text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 text-xs px-3 py-1.5 rounded-md transition-all animate-scale-in disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 text-xs px-2 sm:px-3 py-1.5 rounded-md transition-all animate-scale-in disabled:opacity-50"
               >
                 <Trash2 className="w-3.5 h-3.5" />
-                {deleting ? 'Deleting...' : `Delete ${selected.size}`}
+                <span className="hidden sm:inline">{deleting ? 'Deleting...' : `Delete ${selected.size}`}</span>
               </button>
             )}
             <button
               onClick={() => router.push('/analytics')}
-              className="inline-flex items-center gap-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs px-3 py-1.5 rounded-md transition-colors"
+              className="inline-flex items-center gap-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs px-2 sm:px-3 py-1.5 rounded-md transition-colors"
             >
               <BarChart3 className="w-3.5 h-3.5" />
-              Analytics
+              <span className="hidden sm:inline">Analytics</span>
             </button>
             <button
               onClick={pollEmails}
               disabled={polling}
-              className="inline-flex items-center gap-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs px-3 py-1.5 rounded-md transition-colors disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs px-2 sm:px-3 py-1.5 rounded-md transition-colors disabled:opacity-50"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${polling ? 'animate-spin' : ''}`} />
-              {polling ? 'Checking...' : 'Check Emails'}
+              <span className="hidden sm:inline">{polling ? 'Checking...' : 'Check Emails'}</span>
             </button>
           </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-6 py-5">
-        {/* Toolbar: filters + search */}
-        <div className="flex items-center justify-between mb-4 animate-fade-in-up delay-100">
-          <div className="flex items-center gap-1 bg-zinc-100 rounded-lg p-0.5">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-5">
+        {/* Toolbar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 animate-fade-in-up delay-100">
+          <div className="flex items-center gap-1 bg-zinc-100 rounded-lg p-0.5 overflow-x-auto">
             {STATUS_FILTERS.map((f) => (
               <button
                 key={f.value}
                 onClick={() => { setFilter(f.value); setSelected(new Set()); }}
-                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
+                className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 rounded-md text-xs font-medium transition-all whitespace-nowrap ${
                   filter === f.value
                     ? 'bg-white text-zinc-900 shadow-sm'
                     : 'text-zinc-500 hover:text-zinc-700'
@@ -249,20 +245,17 @@ export default function DashboardPage() {
               placeholder="Search..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="bg-white border border-zinc-200 rounded-md pl-8 pr-7 py-1.5 text-xs text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-400 focus:shadow-sm w-52 transition-all"
+              className="bg-white border border-zinc-200 rounded-md pl-8 pr-7 py-1.5 text-xs text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-400 focus:shadow-sm w-full sm:w-52 transition-all"
             />
             {search && (
-              <button
-                onClick={() => setSearch('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
-              >
+              <button onClick={() => setSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600">
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
         </div>
 
-        {/* Table */}
+        {/* Content */}
         {loading ? (
           <div className="text-center py-20 text-zinc-400 text-sm animate-fade-in">Loading...</div>
         ) : sortedDeals.length === 0 ? (
@@ -278,140 +271,183 @@ export default function DashboardPage() {
             )}
           </div>
         ) : (
-          <div className="border border-zinc-200 rounded-lg overflow-hidden animate-fade-in-up delay-150">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-zinc-50 text-left text-[11px] text-zinc-500 uppercase tracking-wider">
-                  <th className="pl-4 pr-2 py-2.5 w-10">
-                    <input
-                      type="checkbox"
-                      checked={selected.size === sortedDeals.length && sortedDeals.length > 0}
-                      onChange={toggleSelectAll}
-                    />
-                  </th>
-                  <th className="px-3 py-2.5">
-                    <button onClick={() => toggleSort('client')} className="inline-flex items-center gap-1 hover:text-zinc-700 transition-colors">
-                      Client <SortIcon field="client" />
-                    </button>
-                  </th>
-                  <th className="px-3 py-2.5">Subject</th>
-                  <th className="px-3 py-2.5">
-                    <button onClick={() => toggleSort('status')} className="inline-flex items-center gap-1 hover:text-zinc-700 transition-colors">
-                      Status <SortIcon field="status" />
-                    </button>
-                  </th>
-                  <th className="px-3 py-2.5">
-                    <button onClick={() => toggleSort('progress')} className="inline-flex items-center gap-1 hover:text-zinc-700 transition-colors">
-                      Progress <SortIcon field="progress" />
-                    </button>
-                  </th>
-                  <th className="px-3 py-2.5">
-                    <button onClick={() => toggleSort('date')} className="inline-flex items-center gap-1 hover:text-zinc-700 transition-colors">
-                      Received <SortIcon field="date" />
-                    </button>
-                  </th>
-                  <th className="px-3 py-2.5 w-20"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-100">
-                {sortedDeals.map((deal, i) => {
-                  const rate = completionRate(deal);
-                  const label = completionLabel(rate);
-                  return (
-                    <tr
-                      key={deal.id}
-                      onClick={() => router.push(`/dashboard/${deal.id}`)}
-                      className={`hover:bg-zinc-50 cursor-pointer transition-all animate-fade-in-up ${
-                        selected.has(deal.id) ? 'bg-blue-50/50' : ''
-                      }`}
-                      style={{ animationDelay: `${150 + i * 40}ms` }}
-                    >
-                      <td className="pl-4 pr-2 py-3" onClick={(e) => e.stopPropagation()}>
+          <>
+            {/* Mobile card view */}
+            <div className="sm:hidden space-y-2 animate-fade-in-up delay-150">
+              {sortedDeals.map((deal, i) => {
+                const rate = completionRate(deal);
+                const label = completionLabel(rate);
+                return (
+                  <div
+                    key={deal.id}
+                    onClick={() => router.push(`/dashboard/${deal.id}`)}
+                    className={`border border-zinc-200 rounded-lg p-3.5 cursor-pointer active:bg-zinc-50 transition-colors animate-fade-in-up ${
+                      selected.has(deal.id) ? 'bg-blue-50/50 border-blue-200' : ''
+                    }`}
+                    style={{ animationDelay: `${150 + i * 40}ms` }}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-start gap-2.5" onClick={(e) => e.stopPropagation()}>
                         <input
                           type="checkbox"
                           checked={selected.has(deal.id)}
                           onChange={() => {}}
                           onClick={(e) => toggleSelect(deal.id, e)}
+                          className="mt-1"
                         />
-                      </td>
-                      <td className="px-3 py-3">
-                        <p className="text-sm font-medium text-zinc-900">{deal.client_name}</p>
-                        <p className="text-[11px] text-zinc-400">{deal.client_email}</p>
-                      </td>
-                      <td className="px-3 py-3 text-xs text-zinc-500 max-w-[200px] truncate">
-                        {(deal as any).subject_line || '—'}
-                      </td>
-                      <td className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
-                        <div className="relative group">
-                          <StatusBadge status={deal.status} />
-                          {/* Quick status change dropdown */}
-                          <div className="absolute left-0 top-full mt-1 bg-white border border-zinc-200 rounded-lg shadow-lg py-1 z-20 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all min-w-[140px]">
-                            {['new', 'processing', 'ready_for_review', 'completed'].map((s) => (
-                              <button
-                                key={s}
-                                onClick={(e) => updateDealStatus(deal.id, s, e)}
-                                className={`w-full text-left px-3 py-1.5 text-xs hover:bg-zinc-50 transition-colors flex items-center gap-2 ${
-                                  deal.status === s ? 'text-zinc-900 font-medium' : 'text-zinc-600'
+                        <div>
+                          <p className="text-sm font-medium text-zinc-900">{deal.client_name}</p>
+                          <p className="text-[11px] text-zinc-400">{deal.client_email}</p>
+                        </div>
+                      </div>
+                      <StatusBadge status={deal.status} />
+                    </div>
+                    {(deal as any).subject_line && (
+                      <p className="text-[11px] text-zinc-500 mb-2 truncate">{(deal as any).subject_line}</p>
+                    )}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-20 h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full ${
+                              rate >= 80 ? 'bg-emerald-500' : rate >= 40 ? 'bg-blue-500' : rate > 0 ? 'bg-amber-400' : 'bg-zinc-300'
+                            }`}
+                            style={{ width: `${rate}%` }}
+                          />
+                        </div>
+                        <span className="text-[11px] text-zinc-500 font-mono">{rate}%</span>
+                        <span className="text-[10px] text-zinc-400">{label}</span>
+                      </div>
+                      <span className="text-[11px] text-zinc-400">
+                        {new Date(deal.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop table view */}
+            <div className="hidden sm:block border border-zinc-200 rounded-lg overflow-hidden animate-fade-in-up delay-150">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-zinc-50 text-left text-[11px] text-zinc-500 uppercase tracking-wider">
+                    <th className="pl-4 pr-2 py-2.5 w-10">
+                      <input
+                        type="checkbox"
+                        checked={selected.size === sortedDeals.length && sortedDeals.length > 0}
+                        onChange={toggleSelectAll}
+                      />
+                    </th>
+                    <th className="px-3 py-2.5">
+                      <button onClick={() => toggleSort('client')} className="inline-flex items-center gap-1 hover:text-zinc-700 transition-colors">
+                        Client <SortIcon field="client" />
+                      </button>
+                    </th>
+                    <th className="px-3 py-2.5 hidden lg:table-cell">Subject</th>
+                    <th className="px-3 py-2.5">
+                      <button onClick={() => toggleSort('status')} className="inline-flex items-center gap-1 hover:text-zinc-700 transition-colors">
+                        Status <SortIcon field="status" />
+                      </button>
+                    </th>
+                    <th className="px-3 py-2.5">
+                      <button onClick={() => toggleSort('progress')} className="inline-flex items-center gap-1 hover:text-zinc-700 transition-colors">
+                        Progress <SortIcon field="progress" />
+                      </button>
+                    </th>
+                    <th className="px-3 py-2.5 hidden md:table-cell">
+                      <button onClick={() => toggleSort('date')} className="inline-flex items-center gap-1 hover:text-zinc-700 transition-colors">
+                        Received <SortIcon field="date" />
+                      </button>
+                    </th>
+                    <th className="px-3 py-2.5 w-20"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-100">
+                  {sortedDeals.map((deal, i) => {
+                    const rate = completionRate(deal);
+                    const label = completionLabel(rate);
+                    return (
+                      <tr
+                        key={deal.id}
+                        onClick={() => router.push(`/dashboard/${deal.id}`)}
+                        className={`hover:bg-zinc-50 cursor-pointer transition-all animate-fade-in-up ${
+                          selected.has(deal.id) ? 'bg-blue-50/50' : ''
+                        }`}
+                        style={{ animationDelay: `${150 + i * 40}ms` }}
+                      >
+                        <td className="pl-4 pr-2 py-3" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={selected.has(deal.id)}
+                            onChange={() => {}}
+                            onClick={(e) => toggleSelect(deal.id, e)}
+                          />
+                        </td>
+                        <td className="px-3 py-3">
+                          <p className="text-sm font-medium text-zinc-900">{deal.client_name}</p>
+                          <p className="text-[11px] text-zinc-400">{deal.client_email}</p>
+                        </td>
+                        <td className="px-3 py-3 text-xs text-zinc-500 max-w-[200px] truncate hidden lg:table-cell">
+                          {(deal as any).subject_line || '—'}
+                        </td>
+                        <td className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
+                          <div className="relative group">
+                            <StatusBadge status={deal.status} />
+                            <div className="absolute left-0 top-full mt-1 bg-white border border-zinc-200 rounded-lg shadow-lg py-1 z-20 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all min-w-[140px]">
+                              {['new', 'processing', 'ready_for_review', 'completed'].map((s) => (
+                                <button
+                                  key={s}
+                                  onClick={(e) => updateDealStatus(deal.id, s, e)}
+                                  className={`w-full text-left px-3 py-1.5 text-xs hover:bg-zinc-50 transition-colors flex items-center gap-2 ${
+                                    deal.status === s ? 'text-zinc-900 font-medium' : 'text-zinc-600'
+                                  }`}
+                                >
+                                  <span className={`w-1.5 h-1.5 rounded-full ${
+                                    s === 'new' ? 'bg-blue-400' : s === 'processing' ? 'bg-amber-400' : s === 'ready_for_review' ? 'bg-emerald-400' : 'bg-zinc-400'
+                                  }`} />
+                                  {s === 'ready_for_review' ? 'Ready for Review' : s.charAt(0).toUpperCase() + s.slice(1)}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-3 py-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-16 h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                              <div
+                                className={`h-full rounded-full transition-all animate-grow-width ${
+                                  rate >= 80 ? 'bg-emerald-500' : rate >= 40 ? 'bg-blue-500' : rate > 0 ? 'bg-amber-400' : 'bg-zinc-300'
                                 }`}
-                              >
-                                <span className={`w-1.5 h-1.5 rounded-full ${
-                                  s === 'new' ? 'bg-blue-400' :
-                                  s === 'processing' ? 'bg-amber-400' :
-                                  s === 'ready_for_review' ? 'bg-emerald-400' : 'bg-zinc-400'
-                                }`} />
-                                {s === 'ready_for_review' ? 'Ready for Review' : s.charAt(0).toUpperCase() + s.slice(1)}
-                              </button>
-                            ))}
+                                style={{ width: `${rate}%`, animationDelay: `${300 + i * 40}ms` }}
+                              />
+                            </div>
+                            <span className={`text-[11px] font-mono w-16 ${
+                              rate >= 80 ? 'text-emerald-600' : rate >= 40 ? 'text-blue-600' : 'text-zinc-500'
+                            }`}>
+                              {rate}% <span className="text-zinc-400 font-sans">{label}</span>
+                            </span>
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-3 py-3">
-                        <div className="flex items-center gap-2">
-                          <div className="w-16 h-1.5 bg-zinc-100 rounded-full overflow-hidden">
-                            <div
-                              className={`h-full rounded-full transition-all animate-grow-width ${
-                                rate >= 80 ? 'bg-emerald-500' : rate >= 40 ? 'bg-blue-500' : rate > 0 ? 'bg-amber-400' : 'bg-zinc-300'
-                              }`}
-                              style={{ width: `${rate}%`, animationDelay: `${300 + i * 40}ms` }}
-                            />
-                          </div>
-                          <span className={`text-[11px] font-mono w-16 ${
-                            rate >= 80 ? 'text-emerald-600' : rate >= 40 ? 'text-blue-600' : 'text-zinc-500'
-                          }`}>
-                            {rate}% <span className="text-zinc-400 font-sans">{label}</span>
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-3 py-3 text-[11px] text-zinc-400">
-                        {new Date(deal.created_at).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </td>
-                      <td className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelected((prev) => {
-                              const next = new Set(prev);
-                              next.add(deal.id);
-                              return next;
-                            });
-                          }}
-                          className="text-zinc-300 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
-                          title="Select for deletion"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                        </td>
+                        <td className="px-3 py-3 text-[11px] text-zinc-400 hidden md:table-cell">
+                          {new Date(deal.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </td>
+                        <td className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setSelected((prev) => { const next = new Set(prev); next.add(deal.id); return next; }); }}
+                            className="text-zinc-300 hover:text-red-400 transition-colors"
+                            title="Select for deletion"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
     </div>

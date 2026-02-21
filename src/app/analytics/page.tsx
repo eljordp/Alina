@@ -97,13 +97,13 @@ export default function AnalyticsPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <header className="border-b border-zinc-200 px-6 py-4 animate-slide-down">
+      <header className="border-b border-zinc-200 px-4 sm:px-6 py-4 animate-slide-down">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             <button onClick={() => router.push('/dashboard')} className="text-zinc-400 hover:text-zinc-700 transition-colors">
               <ArrowLeft className="w-4 h-4" />
             </button>
-            <h1 className="text-lg font-semibold text-zinc-900 tracking-tight">Analytics</h1>
+            <h1 className="text-base sm:text-lg font-semibold text-zinc-900 tracking-tight">Analytics</h1>
           </div>
           <button onClick={() => router.push('/')} className="text-zinc-400 hover:text-zinc-700 transition-colors">
             <Home className="w-4 h-4" />
@@ -114,9 +114,9 @@ export default function AnalyticsPage() {
       {loading ? (
         <div className="text-center py-20 text-zinc-400 text-sm animate-fade-in">Loading...</div>
       ) : (
-        <div className="max-w-5xl mx-auto px-6 py-6 space-y-6">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-6">
           {/* Stat cards */}
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
             {[
               { label: 'Total Deals', value: stats.total, icon: <Users className="w-4 h-4" />, color: 'text-zinc-900' },
               { label: 'Avg Completion', value: `${stats.avgCompletion}%`, icon: <TrendingUp className="w-4 h-4" />, color: stats.avgCompletion >= 70 ? 'text-emerald-600' : 'text-blue-600' },
@@ -137,7 +137,7 @@ export default function AnalyticsPage() {
             ))}
           </div>
 
-          <div className="grid grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             {/* Pipeline breakdown */}
             <div className="border border-zinc-200 rounded-lg p-5 animate-fade-in-up delay-300">
               <h2 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-4">Pipeline</h2>
@@ -198,18 +198,18 @@ export default function AnalyticsPage() {
                     <div
                       key={deal.id}
                       onClick={() => router.push(`/dashboard/${deal.id}`)}
-                      className="flex items-center justify-between p-3 rounded-lg hover:bg-zinc-50 cursor-pointer transition-colors"
+                      className="flex items-center justify-between p-3 rounded-lg hover:bg-zinc-50 cursor-pointer transition-colors gap-3"
                     >
-                      <div className="flex items-center gap-3">
-                        <FileText className="w-4 h-4 text-zinc-400" />
-                        <div>
-                          <p className="text-sm font-medium text-zinc-900">{deal.client_name}</p>
-                          <p className="text-[11px] text-zinc-400">{deal.client_email}</p>
+                      <div className="flex items-center gap-3 min-w-0">
+                        <FileText className="w-4 h-4 text-zinc-400 shrink-0 hidden sm:block" />
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-zinc-900 truncate">{deal.client_name}</p>
+                          <p className="text-[11px] text-zinc-400 truncate">{deal.client_email}</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-3 sm:gap-4 shrink-0">
                         <div className="flex items-center gap-2">
-                          <div className="w-16 h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                          <div className="w-12 sm:w-16 h-1.5 bg-zinc-100 rounded-full overflow-hidden">
                             <div
                               className={`h-full rounded-full ${rate >= 80 ? 'bg-emerald-500' : rate >= 40 ? 'bg-blue-500' : 'bg-zinc-400'}`}
                               style={{ width: `${rate}%` }}
@@ -217,7 +217,7 @@ export default function AnalyticsPage() {
                           </div>
                           <span className="text-[11px] text-zinc-500 font-mono">{rate}%</span>
                         </div>
-                        <span className="text-[11px] text-zinc-400">
+                        <span className="text-[11px] text-zinc-400 hidden sm:inline">
                           {new Date(deal.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                         </span>
                       </div>

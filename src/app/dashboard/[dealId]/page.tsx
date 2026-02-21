@@ -195,64 +195,64 @@ Loan Processing Team`;
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="border-b border-zinc-200 px-6 py-3.5 sticky top-0 bg-white/90 backdrop-blur-sm z-10 animate-slide-down">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
+      <header className="border-b border-zinc-200 px-4 sm:px-6 py-3.5 sticky top-0 bg-white/90 backdrop-blur-sm z-10 animate-slide-down">
+        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
             <button
               onClick={() => router.push('/dashboard')}
-              className="text-zinc-400 hover:text-zinc-700 transition-colors"
+              className="text-zinc-400 hover:text-zinc-700 transition-colors shrink-0"
             >
               <ArrowLeft className="w-4 h-4" />
             </button>
-            <div>
-              <h1 className="text-sm font-semibold text-zinc-900">{deal.client_name}</h1>
-              <p className="text-[11px] text-zinc-400">{deal.client_email}</p>
+            <div className="min-w-0">
+              <h1 className="text-sm font-semibold text-zinc-900 truncate">{deal.client_name}</h1>
+              <p className="text-[11px] text-zinc-400 truncate">{deal.client_email}</p>
             </div>
             <StatusBadge status={deal.status} />
-            <span className="text-[11px] text-zinc-400 bg-zinc-100 rounded-md px-2 py-0.5 font-mono">
-              {filledCount}/{allFields.length} fields
+            <span className="text-[11px] text-zinc-400 bg-zinc-100 rounded-md px-2 py-0.5 font-mono shrink-0">
+              {filledCount}/{allFields.length}
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             {(formData.missing_fields || []).length > 0 && (
               <button
                 onClick={() => setShowFollowUp(!showFollowUp)}
-                className="inline-flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 text-xs px-3 py-1.5 rounded-md transition-colors"
+                className="inline-flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 text-xs px-2.5 sm:px-3 py-1.5 rounded-md transition-colors"
               >
                 <Mail className="w-3.5 h-3.5" />
-                Follow Up
+                <span className="hidden sm:inline">Follow Up</span>
               </button>
             )}
             <button
               onClick={exportPDF}
-              className="inline-flex items-center gap-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs px-3 py-1.5 rounded-md transition-colors"
+              className="inline-flex items-center gap-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs px-2.5 sm:px-3 py-1.5 rounded-md transition-colors"
             >
               <Download className="w-3.5 h-3.5" />
-              PDF
+              <span className="hidden sm:inline">PDF</span>
             </button>
             <button
               onClick={handleSave}
               disabled={saving}
-              className="inline-flex items-center gap-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs px-3 py-1.5 rounded-md transition-colors disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs px-2.5 sm:px-3 py-1.5 rounded-md transition-colors disabled:opacity-50"
             >
               {saved ? <CheckCircle className="w-3.5 h-3.5 text-emerald-500" /> : <Save className="w-3.5 h-3.5" />}
-              {saved ? 'Saved' : saving ? 'Saving...' : 'Save'}
+              <span className="hidden sm:inline">{saved ? 'Saved' : saving ? 'Saving...' : 'Save'}</span>
             </button>
             <button
               onClick={() => updateStatus('completed')}
-              className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-1.5 rounded-md transition-colors"
+              className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-2.5 sm:px-3 py-1.5 rounded-md transition-colors"
             >
               <CheckCircle className="w-3.5 h-3.5" />
-              Complete
+              <span className="hidden sm:inline">Complete</span>
             </button>
           </div>
         </div>
       </header>
 
-      <div className="max-w-5xl mx-auto px-6 py-5">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-5">
         {/* Status workflow stepper */}
         <div className="mb-5 animate-fade-in-up delay-100">
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0.5 sm:gap-1">
             {STATUS_STEPS.map((step, i) => {
               const isActive = i === currentStepIndex;
               const isDone = i < currentStepIndex;
@@ -260,7 +260,7 @@ Loan Processing Team`;
                 <div key={step.key} className="flex items-center flex-1">
                   <button
                     onClick={() => updateStatus(step.key)}
-                    className={`flex-1 py-2 px-3 rounded-md text-xs font-medium transition-all text-center ${
+                    className={`flex-1 py-1.5 sm:py-2 px-1.5 sm:px-3 rounded-md text-[10px] sm:text-xs font-medium transition-all text-center ${
                       isActive
                         ? 'bg-zinc-900 text-white shadow-sm'
                         : isDone
@@ -268,11 +268,11 @@ Loan Processing Team`;
                         : 'bg-zinc-50 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600'
                     }`}
                   >
-                    {isDone && <CheckCircle className="w-3 h-3 inline mr-1 -mt-0.5" />}
+                    {isDone && <CheckCircle className="w-3 h-3 inline mr-0.5 sm:mr-1 -mt-0.5" />}
                     {step.label}
                   </button>
                   {i < STATUS_STEPS.length - 1 && (
-                    <ChevronRight className="w-3.5 h-3.5 text-zinc-300 mx-1 shrink-0" />
+                    <ChevronRight className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-zinc-300 mx-0.5 sm:mx-1 shrink-0" />
                   )}
                 </div>
               );
@@ -280,9 +280,9 @@ Loan Processing Team`;
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           {/* Main form */}
-          <div className="col-span-2 space-y-4">
+          <div className="lg:col-span-2 space-y-4">
             {/* Missing fields */}
             {missingFields.length > 0 && (
               <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 flex items-start gap-2.5 animate-fade-in-up delay-150">
@@ -319,7 +319,7 @@ Loan Processing Team`;
                       {sectionFilled}/{section.fields.length}
                     </span>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {section.fields.map((field) => {
                       const value = formData[field.key];
                       const isMissing = missingFields.includes(field.key);
@@ -460,8 +460,8 @@ Loan Processing Team`;
 
         {/* Follow-up email panel */}
         {showFollowUp && (
-          <div className="mt-5 border border-amber-200 bg-amber-50/50 rounded-lg p-5 animate-scale-in">
-            <div className="flex items-center justify-between mb-3">
+          <div className="mt-5 border border-amber-200 bg-amber-50/50 rounded-lg p-4 sm:p-5 animate-scale-in">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
               <h3 className="text-xs font-semibold text-amber-800 uppercase tracking-wider flex items-center gap-1.5">
                 <Mail className="w-3.5 h-3.5" />
                 Follow-Up Email Draft
@@ -474,7 +474,7 @@ Loan Processing Team`;
                   }}
                   className="text-[11px] text-amber-700 hover:text-amber-900 bg-amber-100 hover:bg-amber-200 px-2.5 py-1 rounded transition-colors"
                 >
-                  Copy to Clipboard
+                  Copy
                 </button>
                 <button
                   onClick={() => {
@@ -485,7 +485,7 @@ Loan Processing Team`;
                   }}
                   className="text-[11px] text-white bg-amber-600 hover:bg-amber-700 px-2.5 py-1 rounded transition-colors"
                 >
-                  Open in Email
+                  Email
                 </button>
                 <button onClick={() => setShowFollowUp(false)} className="text-amber-400 hover:text-amber-600">
                   <X className="w-3.5 h-3.5" />
@@ -501,20 +501,20 @@ Loan Processing Team`;
 
       {/* Document viewer modal */}
       {viewingDoc && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-6 animate-fade-in" onClick={() => setViewingDoc(null)}>
-          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[85vh] flex flex-col animate-scale-in" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-5 py-3.5 border-b border-zinc-200">
-              <div>
-                <h3 className="text-sm font-semibold text-zinc-900">{viewingDoc.file_name}</h3>
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center sm:p-6 animate-fade-in" onClick={() => setViewingDoc(null)}>
+          <div className="bg-white rounded-t-xl sm:rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] sm:max-h-[85vh] flex flex-col animate-scale-in" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-4 sm:px-5 py-3.5 border-b border-zinc-200">
+              <div className="min-w-0">
+                <h3 className="text-sm font-semibold text-zinc-900 truncate">{viewingDoc.file_name}</h3>
                 <p className="text-[11px] text-zinc-400 mt-0.5">
                   {viewingDoc.doc_type.replace('_', ' ').toUpperCase()} &middot; {viewingDoc.status}
                 </p>
               </div>
-              <button onClick={() => setViewingDoc(null)} className="text-zinc-400 hover:text-zinc-600 transition-colors">
+              <button onClick={() => setViewingDoc(null)} className="text-zinc-400 hover:text-zinc-600 transition-colors shrink-0 ml-3">
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="flex-1 overflow-auto grid grid-cols-2 divide-x divide-zinc-200">
+            <div className="flex-1 overflow-auto grid grid-cols-1 sm:grid-cols-2 sm:divide-x divide-zinc-200">
               {/* Document preview */}
               <div className="p-5 flex items-center justify-center bg-zinc-50">
                 {viewingDoc.file_url ? (
