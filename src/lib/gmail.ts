@@ -115,19 +115,26 @@ async function extractAttachments(gmail: any, messageId: string, payload: any): 
   if (!payload?.parts) return attachments;
 
   for (const part of payload.parts) {
-    if (part.filename && part.body?.attachmentId) {
-      const attachment = await gmail.users.messages.attachments.get({
-        userId: 'me',
-        messageId,
-        id: part.body.attachmentId,
-      });
+    if (part.body?.attachmentId) {
+      // Capture both named attachments and inline images
+      const isImage = part.mimeType?.startsWith('image/');
+      if (part.filename || isImage) {
+        const attachment = await gmail.users.messages.attachments.get({
+          userId: 'me',
+          messageId,
+          id: part.body.attachmentId,
+        });
 
-      attachments.push({
-        fileName: part.filename,
-        mimeType: part.mimeType || 'application/octet-stream',
-        data: attachment.data.data!, // base64url encoded
-        size: attachment.data.size || 0,
-      });
+        // Generate a filename for inline images that don't have one
+        const fileName = part.filename || `inline_${part.headers?.find((h: any) => h.name === 'Content-ID')?.value?.replace(/[<>]/g, '') || Date.now()}.${part.mimeType?.split('/')[1] || 'jpg'}`;
+
+        attachments.push({
+          fileName,
+          mimeType: part.mimeType || 'application/octet-stream',
+          data: attachment.data.data!,
+          size: attachment.data.size || 0,
+        });
+      }
     }
 
     // Recurse into nested parts
