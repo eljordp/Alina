@@ -35,6 +35,7 @@ Extract ALL relevant information and return it as JSON matching this exact schem
   "borrower_ssn": "string or null",
   "borrower_dob": "string or null",
   "borrower_phone": "string or null",
+  "borrower_address": "string or null",
   "employment": "string or null",
   "employment_income": "number or null",
   "liquid_assets": "number or null",
@@ -42,6 +43,26 @@ Extract ALL relevant information and return it as JSON matching this exact schem
   "mid_fico": "number or null",
   "confidence_notes": { "field_name": "note about extraction confidence or source" }
 }
+
+DOCUMENT-SPECIFIC EXTRACTION GUIDANCE:
+
+For GOVERNMENT ID (driver's license, state ID, passport):
+- Extract borrower_name (full legal name as printed)
+- Extract borrower_dob (date of birth)
+- Extract borrower_address (residential address as printed on the ID)
+- Note the ID/license number and issuing state in confidence_notes under "id_document"
+- Do NOT extract SSN from an ID card
+
+For SOCIAL SECURITY CARD:
+- Extract borrower_name (full name as printed on the card)
+- Extract borrower_ssn (the 9-digit Social Security Number, format: XXX-XX-XXXX)
+- Note in confidence_notes that the SSN was extracted from a Social Security card
+
+For PAY STUBS / W-2s:
+- Extract employment, employment_income, borrower_name, borrower_ssn (if visible)
+
+For BANK STATEMENTS:
+- Extract liquid_assets (total balance), borrower_name
 
 IMPORTANT:
 - Extract ONLY what is explicitly stated in the document. Do not calculate or infer values.
@@ -73,7 +94,8 @@ export async function parseEmailBody(emailBody: string): Promise<Partial<LoanApp
 export async function parseDocument(
   base64Content: string,
   mimeType: string,
-  fileName: string
+  fileName: string,
+  docType?: string
 ): Promise<Partial<LoanApplication>> {
   const isImage = mimeType.startsWith('image/');
 
@@ -98,7 +120,7 @@ export async function parseDocument(
             },
             {
               type: 'text',
-              text: `This document is "${fileName}". Extract all relevant loan application fields.`,
+              text: `This document is "${fileName}". Extract all relevant loan application fields. Document type: ${docType || 'unknown'}.`,
             },
           ],
         },
@@ -132,7 +154,7 @@ export async function parseDocument(
           },
           {
             type: 'text',
-            text: `This document is "${fileName}". Extract all relevant loan application fields.`,
+            text: `This document is "${fileName}". Extract all relevant loan application fields. Document type: ${docType || 'unknown'}.`,
           },
         ],
       },

@@ -138,7 +138,7 @@ export default function DashboardPage() {
     return (
       deal.client_name?.toLowerCase().includes(q) ||
       deal.client_email?.toLowerCase().includes(q) ||
-      (deal as any).subject_line?.toLowerCase().includes(q)
+      deal.subject_line?.toLowerCase().includes(q)
     );
   });
 
@@ -302,8 +302,8 @@ export default function DashboardPage() {
                       </div>
                       <StatusBadge status={deal.status} />
                     </div>
-                    {(deal as any).subject_line && (
-                      <p className="text-[11px] text-zinc-500 mb-2 truncate">{(deal as any).subject_line}</p>
+                    {deal.subject_line && (
+                      <p className="text-[11px] text-zinc-500 mb-2 truncate">{deal.subject_line}</p>
                     )}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -389,7 +389,7 @@ export default function DashboardPage() {
                           <p className="text-[11px] text-zinc-400">{deal.client_email}</p>
                         </td>
                         <td className="px-3 py-3 text-xs text-zinc-500 max-w-[200px] truncate hidden lg:table-cell">
-                          {(deal as any).subject_line || '—'}
+                          {deal.subject_line || '—'}
                         </td>
                         <td className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
                           <div className="relative group">

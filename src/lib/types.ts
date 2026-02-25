@@ -1,11 +1,12 @@
 export type DealStatus = 'new' | 'processing' | 'ready_for_review' | 'completed';
 export type DocumentStatus = 'pending' | 'parsed' | 'failed';
-export type DocumentType = 'w2' | 'paystub' | 'bank_statement' | 'tax_return' | 'id' | 'mortgage_statement' | 'other';
+export type DocumentType = 'w2' | 'paystub' | 'bank_statement' | 'tax_return' | 'id' | 'ssn_card' | 'mortgage_statement' | 'other';
 
 export interface Deal {
   id: string;
   client_name: string;
   client_email: string;
+  subject_line: string | null;
   status: DealStatus;
   application_data: LoanApplication;
   raw_email_body: string | null;
@@ -53,6 +54,7 @@ export interface LoanApplication {
   borrower_ssn: string | null;
   borrower_dob: string | null;
   borrower_phone: string | null;
+  borrower_address: string | null;
   employment: string | null;
   employment_income: string | null;
   liquid_assets: string | null;
@@ -86,6 +88,7 @@ export const EMPTY_APPLICATION: LoanApplication = {
   borrower_ssn: null,
   borrower_dob: null,
   borrower_phone: null,
+  borrower_address: null,
   employment: null,
   employment_income: null,
   liquid_assets: null,
