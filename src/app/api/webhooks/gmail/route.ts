@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { createServerSupabase } from '@/lib/supabase-server';
 import { fetchNewEmails, storeAttachment } from '@/lib/gmail';
 import { parseEmailBody, parseDocument, mergeApplicationData } from '@/lib/claude';
 import { EMPTY_APPLICATION } from '@/lib/types';
@@ -7,46 +8,61 @@ import { EMPTY_APPLICATION } from '@/lib/types';
 // Allow up to 60 seconds for this function (GPT-4o vision calls are slow)
 export const maxDuration = 60;
 
-// Gmail Pub/Sub sends POST notifications here
+// Gmail Pub/Sub sends POST notifications here (server-to-server, no user session)
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    // Verify the notification (Google Pub/Sub wraps data in message.data)
     const data = body.message?.data
       ? JSON.parse(Buffer.from(body.message.data, 'base64').toString())
       : body;
 
     console.log('Gmail notification received:', data);
 
-    // Get the stored refresh token (for MVP, using env var)
-    const refreshToken = process.env.GOOGLE_REFRESH_TOKEN!;
+    // Process all connected Gmail accounts
+    const { data: gmailAccounts } = await supabaseAdmin
+      .from('user_gmail_accounts')
+      .select('user_id, refresh_token');
 
-    // Fetch new emails
-    const emails = await fetchNewEmails(refreshToken);
-    console.log(`Processing ${emails.length} new emails`);
-
-    for (const email of emails) {
-      await processEmail(email, refreshToken);
+    let totalProcessed = 0;
+    for (const account of gmailAccounts || []) {
+      const emails = await fetchNewEmails(account.refresh_token);
+      for (const email of emails) {
+        await processEmail(email, account.refresh_token, account.user_id);
+      }
+      totalProcessed += emails.length;
     }
 
-    return NextResponse.json({ success: true, processed: emails.length });
+    return NextResponse.json({ success: true, processed: totalProcessed });
   } catch (error) {
     console.error('Gmail webhook error:', error);
     return NextResponse.json({ error: 'Processing failed' }, { status: 500 });
   }
 }
 
-// Also support GET for manual polling / testing
-// Use ?rescan=true to re-process previously read emails
+// Manual polling from dashboard "Check Emails" button (authenticated)
 export async function GET(request: NextRequest) {
   try {
-    const refreshToken = process.env.GOOGLE_REFRESH_TOKEN!;
+    const supabase = await createServerSupabase();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    // Get this user's Gmail refresh token
+    const { data: gmailAccount } = await supabaseAdmin
+      .from('user_gmail_accounts')
+      .select('refresh_token')
+      .eq('user_id', user.id)
+      .single();
+
+    if (!gmailAccount) {
+      return NextResponse.json({ error: 'Gmail not connected. Connect your Gmail first.' }, { status: 400 });
+    }
+
     const rescan = request.nextUrl.searchParams.get('rescan') === 'true';
-    const emails = await fetchNewEmails(refreshToken, rescan);
+    const emails = await fetchNewEmails(gmailAccount.refresh_token, rescan);
 
     for (const email of emails) {
-      await processEmail(email, refreshToken);
+      await processEmail(email, gmailAccount.refresh_token, user.id);
     }
 
     return NextResponse.json({ success: true, processed: emails.length, rescan });
@@ -66,7 +82,8 @@ async function processEmail(
     body: string;
     attachments: { fileName: string; mimeType: string; data: string; size: number }[];
   },
-  refreshToken: string
+  refreshToken: string,
+  userId: string
 ) {
   // Check if this email was already processed
   const { data: existingDocs } = await supabaseAdmin
@@ -77,7 +94,6 @@ async function processEmail(
   if (existingDocs && existingDocs.length > 0) {
     const allFailed = existingDocs.every(d => d.status === 'pending' || d.status === 'failed');
     if (allFailed) {
-      // Delete stuck documents so we can retry
       console.log(`Retrying ${existingDocs.length} pending/failed docs for email ${email.messageId}`);
       await supabaseAdmin
         .from('documents')
@@ -89,22 +105,21 @@ async function processEmail(
     }
   }
 
-  // Find or create deal for this client
+  // Find or create deal for this client (scoped to this user)
   let deal;
 
-  // First: match by sender email
   const { data: existingDeal } = await supabaseAdmin
     .from('deals')
     .select('*')
+    .eq('user_id', userId)
     .eq('client_email', email.from)
     .in('status', ['new', 'processing', 'ready_for_review'])
     .order('created_at', { ascending: false })
     .limit(1)
     .single();
 
-  // Fallback: match by subject line / property address
   const subjectMatchedDeal = !existingDeal && email.subject
-    ? await findDealBySubject(email.subject)
+    ? await findDealBySubject(email.subject, userId)
     : null;
 
   if (existingDeal) {
@@ -122,10 +137,11 @@ async function processEmail(
       .eq('id', deal.id);
     await logActivity(deal.id, 'email_received', `Follow-up matched by subject from ${email.from}: "${email.subject}"`);
   } else {
-    // Create new deal
+    // Create new deal (scoped to this user)
     const { data: newDeal, error } = await supabaseAdmin
       .from('deals')
       .insert({
+        user_id: userId,
         client_name: email.senderName,
         client_email: email.from,
         subject_line: email.subject,
@@ -159,13 +175,9 @@ async function processEmail(
     try {
       console.log(`Processing attachment: ${attachment.fileName}`);
 
-      // Store the file
       const fileUrl = await storeAttachment(deal.id, attachment.fileName, attachment.data, attachment.mimeType);
-
-      // Determine document type from filename/mimetype
       const docType = classifyDocument(attachment.fileName, attachment.mimeType);
 
-      // Create document record
       const { data: doc, error: docError } = await supabaseAdmin
         .from('documents')
         .insert({
@@ -184,7 +196,6 @@ async function processEmail(
         continue;
       }
 
-      // Parse document with Claude
       const supportedTypes = [
         'application/pdf',
         'image/jpeg',
@@ -198,18 +209,15 @@ async function processEmail(
         const extractedData = await parseDocument(attachment.data, attachment.mimeType, attachment.fileName, docType);
         console.log(`GPT-4o returned for ${attachment.fileName}:`, JSON.stringify(extractedData).substring(0, 200));
 
-        // Update document with extracted data
         await supabaseAdmin
           .from('documents')
           .update({ extracted_data: extractedData, status: 'parsed', doc_type: docType })
           .eq('id', doc.id);
 
-        // Merge into application
         applicationData = mergeApplicationData(applicationData, extractedData);
         await logActivity(deal.id, 'document_parsed', `Parsed ${attachment.fileName} (${docType})`);
       } else {
         console.log(`Unsupported type for ${attachment.fileName}: ${attachment.mimeType}`);
-        // Mark unsupported formats
         await supabaseAdmin
           .from('documents')
           .update({ status: 'failed', extracted_data: { error: `Unsupported format: ${attachment.mimeType}` } })
@@ -217,7 +225,6 @@ async function processEmail(
       }
     } catch (err) {
       console.error(`Failed to process attachment ${attachment.fileName}:`, err);
-      // Mark any pending docs for this message as failed
       await supabaseAdmin
         .from('documents')
         .update({ status: 'failed', extracted_data: { error: err instanceof Error ? err.message : String(err) } })
@@ -272,10 +279,11 @@ function normalizeAddress(text: string): string {
     .trim();
 }
 
-async function findDealBySubject(subject: string) {
+async function findDealBySubject(subject: string, userId: string) {
   const { data: activeDeals } = await supabaseAdmin
     .from('deals')
     .select('*')
+    .eq('user_id', userId)
     .in('status', ['new', 'processing', 'ready_for_review'])
     .order('created_at', { ascending: false });
 
@@ -284,21 +292,18 @@ async function findDealBySubject(subject: string) {
   const normalizedSubject = normalizeAddress(subject);
 
   for (const deal of activeDeals) {
-    // Check if subject contains the deal's property address
     const propertyAddress = deal.application_data?.property_address;
     if (propertyAddress) {
       const normalizedAddress = normalizeAddress(propertyAddress);
       if (normalizedSubject.includes(normalizedAddress) || normalizedAddress.includes(normalizedSubject)) {
         return deal;
       }
-      // Extract street portion (before city/state) for partial matching
       const streetPortion = normalizedAddress.split(/\b(apt|unit|suite|ste|city|ca|az|nv|tx|fl|ny|wa|or)\b/)[0].trim();
       if (streetPortion.length >= 5 && normalizedSubject.includes(streetPortion)) {
         return deal;
       }
     }
 
-    // Check if subject matches the deal's original subject line
     if (deal.subject_line) {
       const normalizedDealSubject = normalizeAddress(deal.subject_line);
       if (normalizedSubject === normalizedDealSubject) {
@@ -319,10 +324,10 @@ function classifyDocument(fileName: string, mimeType: string): string {
   if (lower.includes('tax') || lower.includes('1040') || lower.includes('1099')) return 'tax_return';
   if (lower.includes('mortgage') || lower.includes('deed')) return 'mortgage_statement';
 
-  // SSN card detection — check before generic ID to avoid confusion
+  // SSN card detection
   if (lower.includes('ssn') || lower.includes('social security') || lower.includes('social_security') || lower.includes('social')) return 'ssn_card';
 
-  // Government ID — word-boundary regex to avoid matching "paid", "liquid", etc.
+  // Government ID
   if (
     /\bid\b/.test(lower) ||
     lower.includes('license') || lower.includes('licence') ||

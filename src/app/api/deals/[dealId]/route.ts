@@ -1,15 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
+import { createServerSupabase } from '@/lib/supabase-server';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ dealId: string }> }
 ) {
+  const supabase = await createServerSupabase();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   const { dealId } = await params;
 
+  // RLS ensures only user's own deals are returned
   const [dealResult, docsResult] = await Promise.all([
-    supabaseAdmin.from('deals').select('*').eq('id', dealId).single(),
-    supabaseAdmin.from('documents').select('*').eq('deal_id', dealId).order('created_at', { ascending: true }),
+    supabase.from('deals').select('*').eq('id', dealId).single(),
+    supabase.from('documents').select('*').eq('deal_id', dealId).order('created_at', { ascending: true }),
   ]);
 
   if (dealResult.error) {
@@ -26,6 +31,10 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ dealId: string }> }
 ) {
+  const supabase = await createServerSupabase();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   const { dealId } = await params;
   const body = await request.json();
 
@@ -41,7 +50,8 @@ export async function PATCH(
     updateData.status = body.status;
   }
 
-  const { data, error } = await supabaseAdmin
+  // RLS ensures only user's own deals can be updated
+  const { data, error } = await supabase
     .from('deals')
     .update(updateData)
     .eq('id', dealId)
@@ -52,17 +62,17 @@ export async function PATCH(
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // Log activity (best-effort, ignore errors)
+  // Log activity (best-effort)
   try {
     if (body.status) {
-      await supabaseAdmin.from('activity_log').insert({
+      await supabase.from('activity_log').insert({
         deal_id: dealId,
         action: 'status_changed',
         details: `Status changed to ${body.status}`,
       });
     }
     if (body.application_data && !body.status) {
-      await supabaseAdmin.from('activity_log').insert({
+      await supabase.from('activity_log').insert({
         deal_id: dealId,
         action: 'application_saved',
         details: 'Application data saved by loan officer',

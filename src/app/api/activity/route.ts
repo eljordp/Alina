@@ -1,15 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
+import { createServerSupabase } from '@/lib/supabase-server';
 
 // GET activity log for a deal
 export async function GET(request: NextRequest) {
+  const supabase = await createServerSupabase();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   const dealId = request.nextUrl.searchParams.get('dealId');
 
   if (!dealId) {
     return NextResponse.json({ error: 'dealId required' }, { status: 400 });
   }
 
-  const { data, error } = await supabaseAdmin
+  // RLS ensures only activity for user's own deals is returned
+  const { data, error } = await supabase
     .from('activity_log')
     .select('*')
     .eq('deal_id', dealId)
@@ -25,6 +30,10 @@ export async function GET(request: NextRequest) {
 
 // POST to create a new activity entry
 export async function POST(request: NextRequest) {
+  const supabase = await createServerSupabase();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   const body = await request.json();
   const { deal_id, action, details } = body;
 
@@ -32,7 +41,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'deal_id and action required' }, { status: 400 });
   }
 
-  const { data, error } = await supabaseAdmin
+  // RLS ensures user can only add activity to their own deals
+  const { data, error } = await supabase
     .from('activity_log')
     .insert({ deal_id, action, details })
     .select()

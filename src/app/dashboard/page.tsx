@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Deal } from '@/lib/types';
 import { StatusBadge } from '@/components/StatusBadge';
-import { RefreshCw, Inbox, Clock, CheckCircle, AlertCircle, Trash2, Search, X, Home, ArrowUpDown, ChevronUp, ChevronDown, BarChart3, Mail } from 'lucide-react';
+import { RefreshCw, Inbox, Clock, CheckCircle, AlertCircle, Trash2, Search, X, Home, ArrowUpDown, ChevronUp, ChevronDown, BarChart3, Mail, LogOut } from 'lucide-react';
+import { createBrowserSupabase } from '@/lib/supabase';
 
 const STATUS_FILTERS = [
   { label: 'All', value: 'all', icon: <Inbox className="w-3.5 h-3.5" /> },
@@ -189,11 +190,19 @@ export default function DashboardPage() {
             </span>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2">
-            {connectedEmail && (
+            {connectedEmail ? (
               <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] text-zinc-400 bg-zinc-50 border border-zinc-200 rounded-md px-2.5 py-1">
                 <Mail className="w-3 h-3" />
                 {connectedEmail}
               </span>
+            ) : (
+              <a
+                href="/api/auth/gmail"
+                className="inline-flex items-center gap-1.5 text-[11px] text-blue-600 bg-blue-50 border border-blue-200 rounded-md px-2.5 py-1 hover:bg-blue-100 transition-colors"
+              >
+                <Mail className="w-3 h-3" />
+                Connect Gmail
+              </a>
             )}
             {selected.size > 0 && (
               <button
@@ -219,6 +228,17 @@ export default function DashboardPage() {
             >
               <RefreshCw className={`w-3.5 h-3.5 ${polling ? 'animate-spin' : ''}`} />
               <span className="hidden sm:inline">{polling ? 'Checking...' : 'Check Emails'}</span>
+            </button>
+            <button
+              onClick={async () => {
+                const supabase = createBrowserSupabase();
+                await supabase.auth.signOut();
+                router.push('/login');
+              }}
+              className="inline-flex items-center gap-1.5 text-zinc-400 hover:text-zinc-600 text-xs px-2 py-1.5 rounded-md transition-colors"
+              title="Sign out"
+            >
+              <LogOut className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
@@ -272,12 +292,18 @@ export default function DashboardPage() {
           <div className="text-center py-24 animate-fade-in-up">
             <Inbox className="w-10 h-10 text-zinc-300 mx-auto mb-3" />
             <p className="text-zinc-500 text-sm">
-              {search ? 'No deals match your search.' : 'No deals yet.'}
+              {search ? 'No deals match your search.' : connectedEmail ? 'No deals yet.' : 'Connect your Gmail to get started.'}
             </p>
             {!search && (
-              <button onClick={pollEmails} className="mt-3 text-blue-600 hover:text-blue-700 text-xs transition-colors">
-                Check inbox now
-              </button>
+              connectedEmail ? (
+                <button onClick={pollEmails} className="mt-3 text-blue-600 hover:text-blue-700 text-xs transition-colors">
+                  Check inbox now
+                </button>
+              ) : (
+                <a href="/api/auth/gmail" className="mt-3 inline-block text-blue-600 hover:text-blue-700 text-xs transition-colors">
+                  Connect Gmail
+                </a>
+              )
             )}
           </div>
         ) : (

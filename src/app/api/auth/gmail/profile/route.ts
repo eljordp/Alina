@@ -1,17 +1,22 @@
 import { NextResponse } from 'next/server';
-import { getGmailClient } from '@/lib/gmail';
+import { createServerSupabase } from '@/lib/supabase-server';
 
 export async function GET() {
   try {
-    const refreshToken = process.env.GOOGLE_REFRESH_TOKEN;
-    if (!refreshToken) {
+    const supabase = await createServerSupabase();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
       return NextResponse.json({ email: null });
     }
 
-    const gmail = getGmailClient(refreshToken);
-    const profile = await gmail.users.getProfile({ userId: 'me' });
+    const { data: gmailAccount } = await supabase
+      .from('user_gmail_accounts')
+      .select('gmail_email')
+      .eq('user_id', user.id)
+      .single();
 
-    return NextResponse.json({ email: profile.data.emailAddress });
+    return NextResponse.json({ email: gmailAccount?.gmail_email || null });
   } catch {
     return NextResponse.json({ email: null });
   }

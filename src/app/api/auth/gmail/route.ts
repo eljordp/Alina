@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { google } from 'googleapis';
+import { supabaseAdmin } from '@/lib/supabase';
+import { createServerSupabase } from '@/lib/supabase-server';
 
 const oauth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_CLIENT_ID,
@@ -7,35 +9,41 @@ const oauth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_REDIRECT_URI
 );
 
-// Step 1: GET /api/auth/gmail → redirects to Google consent screen
 export async function GET(request: NextRequest) {
+  const supabase = await createServerSupabase();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+
   const { searchParams } = new URL(request.url);
   const code = searchParams.get('code');
 
-  // If we have a code, exchange it for tokens (Step 2)
   if (code) {
     try {
       const { tokens } = await oauth2Client.getToken(code);
 
-      // Display the refresh token so it can be copied to .env.local
-      return new NextResponse(
-        `<html>
-          <body style="font-family: monospace; padding: 40px; background: #111; color: #fff;">
-            <h1 style="color: #60a5fa;">Alina - Gmail Connected</h1>
-            <p>Copy this refresh token into your .env.local file:</p>
-            <pre style="background: #222; padding: 16px; border-radius: 8px; word-break: break-all; color: #4ade80;">GOOGLE_REFRESH_TOKEN=${tokens.refresh_token}</pre>
-            <p style="color: #888;">Access token (temporary): ${tokens.access_token?.substring(0, 20)}...</p>
-            <p style="color: #888;">You can close this tab now.</p>
-          </body>
-        </html>`,
-        { headers: { 'Content-Type': 'text/html' } }
-      );
+      // Get the connected Gmail address
+      oauth2Client.setCredentials(tokens);
+      const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+      const profile = await gmail.users.getProfile({ userId: 'me' });
+
+      // Store refresh token for this user (upsert — one Gmail per user)
+      await supabaseAdmin.from('user_gmail_accounts').upsert({
+        user_id: user.id,
+        gmail_email: profile.data.emailAddress,
+        refresh_token: tokens.refresh_token,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'user_id' });
+
+      return NextResponse.redirect(new URL('/dashboard', request.url));
     } catch (error) {
       return NextResponse.json({ error: 'Token exchange failed', details: String(error) }, { status: 500 });
     }
   }
 
-  // No code yet — redirect to Google consent screen
+  // No code — redirect to Google consent screen
   const authUrl = oauth2Client.generateAuthUrl({
     access_type: 'offline',
     prompt: 'consent',

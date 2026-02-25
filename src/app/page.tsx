@@ -13,7 +13,7 @@ export default function Home() {
         <div className="max-w-[1200px] mx-auto px-6 h-14 flex items-center justify-between">
           <span className="text-[15px] font-medium tracking-[-0.01em]">Alina</span>
           <button
-            onClick={() => router.push('/dashboard')}
+            onClick={() => router.push('/login')}
             className="text-[13px] text-white/40 hover:text-white transition-colors duration-200"
           >
             Log in
@@ -35,7 +35,7 @@ export default function Home() {
           </p>
           <div className="mt-10 flex items-center gap-6">
             <button
-              onClick={() => router.push('/dashboard')}
+              onClick={() => router.push('/login')}
               className="group inline-flex items-center gap-2.5 bg-white text-[#0C0C0C] text-[13px] font-semibold px-5 py-2.5 rounded-md hover:bg-white/90 transition-colors"
             >
               Open Dashboard
@@ -163,7 +163,7 @@ export default function Home() {
             </p>
           </div>
           <button
-            onClick={() => router.push('/dashboard')}
+            onClick={() => router.push('/login')}
             className="group shrink-0 inline-flex items-center gap-2 bg-white text-[#0C0C0C] text-[13px] font-semibold px-5 py-2.5 rounded-md hover:bg-white/90 transition-colors"
           >
             Get started
