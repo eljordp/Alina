@@ -49,7 +49,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ success: true, processed: emails.length, rescan });
   } catch (error) {
     console.error('Manual poll error:', error);
-    return NextResponse.json({ error: 'Processing failed' }, { status: 500 });
+    const message = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: 'Processing failed', detail: message }, { status: 500 });
   }
 }
 
