@@ -1,7 +1,3 @@
 {
-  "functions": {
-    "src/app/api/webhooks/gmail/route.ts": {
-      "maxDuration": 60
-    }
-  }
+  "framework": "nextjs"
 }

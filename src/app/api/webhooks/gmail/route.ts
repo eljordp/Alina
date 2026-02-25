@@ -4,6 +4,9 @@ import { fetchNewEmails, storeAttachment } from '@/lib/gmail';
 import { parseEmailBody, parseDocument, mergeApplicationData } from '@/lib/claude';
 import { EMPTY_APPLICATION } from '@/lib/types';
 
+// Allow up to 60 seconds for this function (GPT-4o vision calls are slow)
+export const maxDuration = 60;
+
 // Gmail Pub/Sub sends POST notifications here
 export async function POST(request: NextRequest) {
   try {
@@ -191,18 +194,21 @@ async function processEmail(
       ];
 
       if (supportedTypes.includes(attachment.mimeType)) {
+        console.log(`Sending ${attachment.fileName} (${attachment.mimeType}, ${attachment.data.length} chars) to GPT-4o vision...`);
         const extractedData = await parseDocument(attachment.data, attachment.mimeType, attachment.fileName, docType);
+        console.log(`GPT-4o returned for ${attachment.fileName}:`, JSON.stringify(extractedData).substring(0, 200));
 
         // Update document with extracted data
         await supabaseAdmin
           .from('documents')
-          .update({ extracted_data: extractedData, status: 'parsed' })
+          .update({ extracted_data: extractedData, status: 'parsed', doc_type: docType })
           .eq('id', doc.id);
 
         // Merge into application
         applicationData = mergeApplicationData(applicationData, extractedData);
         await logActivity(deal.id, 'document_parsed', `Parsed ${attachment.fileName} (${docType})`);
       } else {
+        console.log(`Unsupported type for ${attachment.fileName}: ${attachment.mimeType}`);
         // Mark unsupported formats
         await supabaseAdmin
           .from('documents')
@@ -211,6 +217,13 @@ async function processEmail(
       }
     } catch (err) {
       console.error(`Failed to process attachment ${attachment.fileName}:`, err);
+      // Mark any pending docs for this message as failed
+      await supabaseAdmin
+        .from('documents')
+        .update({ status: 'failed', extracted_data: { error: err instanceof Error ? err.message : String(err) } })
+        .eq('gmail_message_id', email.messageId)
+        .eq('file_name', attachment.fileName)
+        .eq('status', 'pending');
     }
   }
 
