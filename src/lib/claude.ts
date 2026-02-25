@@ -100,6 +100,9 @@ export async function parseDocument(
   const isImage = mimeType.startsWith('image/');
 
   if (isImage) {
+    // Gmail API returns base64url encoding — convert to standard base64 for data URIs
+    const standardBase64 = Buffer.from(base64Content, 'base64url').toString('base64');
+
     // Use GPT-4o vision for images
     const response = await openai.chat.completions.create({
       model: 'gpt-4o',
@@ -115,7 +118,7 @@ export async function parseDocument(
             {
               type: 'image_url',
               image_url: {
-                url: `data:${mimeType};base64,${base64Content}`,
+                url: `data:${mimeType};base64,${standardBase64}`,
               },
             },
             {
@@ -132,8 +135,7 @@ export async function parseDocument(
   }
 
   // For PDFs: use the file upload approach
-  // GPT-4o can handle base64 PDFs via the assistant API, but for simplicity
-  // we'll convert to text description approach
+  const standardBase64 = Buffer.from(base64Content, 'base64url').toString('base64');
   const response = await openai.chat.completions.create({
     model: 'gpt-4o',
     response_format: { type: 'json_object' },
@@ -149,7 +151,7 @@ export async function parseDocument(
             type: 'file',
             file: {
               filename: fileName,
-              file_data: `data:${mimeType};base64,${base64Content}`,
+              file_data: `data:${mimeType};base64,${standardBase64}`,
             },
           },
           {

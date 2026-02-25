@@ -66,15 +66,24 @@ async function processEmail(
   refreshToken: string
 ) {
   // Check if this email was already processed
-  const { data: existing } = await supabaseAdmin
+  const { data: existingDocs } = await supabaseAdmin
     .from('documents')
-    .select('id')
-    .eq('gmail_message_id', email.messageId)
-    .single();
+    .select('id, status')
+    .eq('gmail_message_id', email.messageId);
 
-  if (existing) {
-    console.log(`Email ${email.messageId} already processed, skipping`);
-    return;
+  if (existingDocs && existingDocs.length > 0) {
+    const allFailed = existingDocs.every(d => d.status === 'pending' || d.status === 'failed');
+    if (allFailed) {
+      // Delete stuck documents so we can retry
+      console.log(`Retrying ${existingDocs.length} pending/failed docs for email ${email.messageId}`);
+      await supabaseAdmin
+        .from('documents')
+        .delete()
+        .eq('gmail_message_id', email.messageId);
+    } else {
+      console.log(`Email ${email.messageId} already processed, skipping`);
+      return;
+    }
   }
 
   // Find or create deal for this client
