@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Deal } from '@/lib/types';
 import { StatusBadge } from '@/components/StatusBadge';
-import { RefreshCw, Inbox, Clock, CheckCircle, AlertCircle, Trash2, Search, X, Home, ArrowUpDown, ChevronUp, ChevronDown, BarChart3 } from 'lucide-react';
+import { RefreshCw, Inbox, Clock, CheckCircle, AlertCircle, Trash2, Search, X, Home, ArrowUpDown, ChevronUp, ChevronDown, BarChart3, Mail } from 'lucide-react';
 
 const STATUS_FILTERS = [
   { label: 'All', value: 'all', icon: <Inbox className="w-3.5 h-3.5" /> },
@@ -30,6 +30,7 @@ export default function DashboardPage() {
   const [deleting, setDeleting] = useState(false);
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
+  const [connectedEmail, setConnectedEmail] = useState<string | null>(null);
 
   const fetchDeals = async () => {
     try {
@@ -116,6 +117,9 @@ export default function DashboardPage() {
     const interval = setInterval(fetchDeals, 30000);
     return () => clearInterval(interval);
   }, [filter]);
+  useEffect(() => {
+    fetch('/api/auth/gmail/profile').then(r => r.json()).then(d => setConnectedEmail(d.email)).catch(() => {});
+  }, []);
 
   const completionRate = (deal: Deal) => {
     const app = deal.application_data;
@@ -185,6 +189,12 @@ export default function DashboardPage() {
             </span>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2">
+            {connectedEmail && (
+              <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] text-zinc-400 bg-zinc-50 border border-zinc-200 rounded-md px-2.5 py-1">
+                <Mail className="w-3 h-3" />
+                {connectedEmail}
+              </span>
+            )}
             {selected.size > 0 && (
               <button
                 onClick={deleteSelected}
